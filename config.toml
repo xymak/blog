@@ -1,0 +1,5 @@
+title = "mak's blog"
+baseURL = "https://xymak.github.io"
+languageCode = "en-us"
+theme = "ananke"
+publishDir = "docs"

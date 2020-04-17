@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Even - A super concise theme for Hugo</title>
+    <link>https://xymak.github.io/</link>
+    <description>Recent content on Even - A super concise theme for Hugo</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <lastBuildDate>Sat, 18 Apr 2020 00:03:22 +0800</lastBuildDate>
+    
+	<atom:link href="https://xymak.github.io/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>First Post</title>
+      <link>https://xymak.github.io/posts/first-post/</link>
+      <pubDate>Sat, 18 Apr 2020 00:03:22 +0800</pubDate>
+      
+      <guid>https://xymak.github.io/posts/first-post/</guid>
+      <description>Hello world </description>
+    </item>
+    
+  </channel>
+</rss>
