@@ -1,5 +1,5 @@
 title = "mak's blog"
-baseURL = "https://xymak.github.io"
+baseURL = "https://xymak.github.io/blog"
 languageCode = "en-us"
 theme = "ananke"
 publishDir = "docs"

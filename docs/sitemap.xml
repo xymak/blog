@@ -3,26 +3,26 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
-    <loc>https://xymak.github.io/posts/first-post/</loc>
+    <loc>https://xymak.github.io/blog/posts/first-post/</loc>
     <lastmod>2020-04-18T00:44:54+08:00</lastmod>
   </url>
   
   <url>
-    <loc>https://xymak.github.io/</loc>
+    <loc>https://xymak.github.io/blog/</loc>
     <lastmod>2020-04-18T00:44:54+08:00</lastmod>
   </url>
   
   <url>
-    <loc>https://xymak.github.io/posts/</loc>
+    <loc>https://xymak.github.io/blog/posts/</loc>
     <lastmod>2020-04-18T00:44:54+08:00</lastmod>
   </url>
   
   <url>
-    <loc>https://xymak.github.io/categories/</loc>
+    <loc>https://xymak.github.io/blog/categories/</loc>
   </url>
   
   <url>
-    <loc>https://xymak.github.io/tags/</loc>
+    <loc>https://xymak.github.io/blog/tags/</loc>
   </url>
   
 </urlset>
