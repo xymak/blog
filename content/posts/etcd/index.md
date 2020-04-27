@@ -49,5 +49,8 @@ e5f114f803598601, started, myetcd3, http://0.0.0.0:23803, http://0.0.0.0:23793
 ```shell script
 etcd grpc-proxy start --endpoints=${etcd-add1},${etcd-add2},${etcd-add3} --listen-addr=0.0.0.0:23790
 ```
-可以起几个节点，用lvs做个虚拟ip，就可以实现高可用了
+可以起几个节点，用lvs做个虚拟ip，rs到grpc proxy的节点，就可以实现高可用了。
+
+## 多机房怎么部署？
+如果是搭建两个集群，etcd提供mirror-make做多机房备份，这个很简单。但是要跨机房搭建一个etcd集群，目前没有很好的方案。假如有两个机房，这个场景很尴尬，3个机房，每个机房3台，任何一个机房故障，集群还是可用的。
 

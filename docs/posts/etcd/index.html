@@ -43,7 +43,7 @@ etcd --name myetcd1 --listen-client-urls http://0.0.0.0:23791 --advertise-client
 etcdctl --endpoints=http://127.0.0.1:23791 member list 47170e1b92eadb07: name=myetcd1 peerURLs=http://0.0.0.0:23801 clientURLs=http://0.0.0.0:23791 isLeader=true d150980031282a6b: name=myetcd2 peerURLs=http://0.0.0.0:23802 clientURLs=http://0.">
 <meta itemprop="datePublished" content="2020-04-18T00:44:54&#43;08:00" />
 <meta itemprop="dateModified" content="2020-04-18T00:44:54&#43;08:00" />
-<meta itemprop="wordCount" content="136">
+<meta itemprop="wordCount" content="139">
 
 
 
@@ -172,7 +172,9 @@ e5f114f803598601, started, myetcd3, http://0.0.0.0:23803, http://0.0.0.0:23793
 <p>我的回答是，我每个微服务改下配置。评委说这样效率很低。
 我后来查了一下etcd是有一个叫grpc_proxy的代理，可以利用给etcd集群做个反向代理。</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">etcd grpc-proxy start --endpoints<span style="color:#f92672">=</span><span style="color:#e6db74">${</span>etcd-add1<span style="color:#e6db74">}</span>,<span style="color:#e6db74">${</span>etcd-add2<span style="color:#e6db74">}</span>,<span style="color:#e6db74">${</span>etcd-add3<span style="color:#e6db74">}</span> --listen-addr<span style="color:#f92672">=</span>0.0.0.0:23790
-</code></pre></div><p>可以起几个节点，用lvs做个虚拟ip，就可以实现高可用了</p>
+</code></pre></div><p>可以起几个节点，用lvs做个虚拟ip，rs到grpc proxy的节点，就可以实现高可用了。</p>
+<h2 id="多机房怎么部署">多机房怎么部署？</h2>
+<p>如果是搭建两个集群，etcd提供mirror-make做多机房备份，这个很简单。但是要跨机房搭建一个etcd集群，目前没有很好的方案。假如有两个机房，这个场景很尴尬，3个机房，每个机房3台，任何一个机房故障，集群还是可用的。</p>
 <ul class="pa0">
   
 </ul>
