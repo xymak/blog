@@ -96,12 +96,14 @@
   <div class="bg-white mb3 pa4 gray overflow-hidden">
     <span class="f6 db">Posts</span>
     <h1 class="f3 near-black">
-      <a href="https://xymak.github.io/blog/posts/first-post/" class="link black dim">
-        First Post
+      <a href="https://xymak.github.io/blog/posts/etcd/" class="link black dim">
+        今年晋升答辩的时候遇到的问题：etcd怎么添加新节点？
       </a>
     </h1>
     <div class="nested-links f5 lh-copy nested-copy-line-height">
-      
+      我自己搭的etcd集群的时候，随便在网上找了个demo就搞定了，没关注这方面的问题。被评为问到就蒙了。今天我遇到的问题都复盘一遍。
+1.etcd怎么添加一个节点？ 我之前没搭建过zookeeper、consul之类的集群，所有没关注过。 被问到这个问题，我当时回答是改配置文件，其实是不行的。因为，因为重新启动启动各个节点的时候，会有一致性问题: 需要重启，如果让数据版本比较旧的节点成为了leader，处理了写入请求后，当其他节点重新加入后，这个节点成为最新版本的节点，数据覆盖了之前的版本.
+这张图的是极客时间zookeeper实战与源码剖析里的。
     </div>
   </div>
 </div>

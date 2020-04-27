@@ -3,17 +3,17 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
-    <loc>https://xymak.github.io/blog/posts/first-post/</loc>
-    <lastmod>2020-04-18T00:44:54+08:00</lastmod>
-  </url>
-  
-  <url>
     <loc>https://xymak.github.io/blog/</loc>
     <lastmod>2020-04-18T00:44:54+08:00</lastmod>
   </url>
   
   <url>
     <loc>https://xymak.github.io/blog/posts/</loc>
+    <lastmod>2020-04-18T00:44:54+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://xymak.github.io/blog/posts/etcd/</loc>
     <lastmod>2020-04-18T00:44:54+08:00</lastmod>
   </url>
   
