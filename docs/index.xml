@@ -6,10 +6,24 @@
     <description>Recent content on mak&#39;s blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sat, 18 Apr 2020 00:44:54 +0800</lastBuildDate>
+    <lastBuildDate>Sat, 02 May 2020 17:50:57 +0800</lastBuildDate>
     
 	<atom:link href="https://xymak.github.io/blog/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>利用gdb分析nginx core dump文件</title>
+      <link>https://xymak.github.io/blog/posts/nginx-core-dump-gdb/</link>
+      <pubDate>Sat, 02 May 2020 17:50:57 +0800</pubDate>
+      
+      <guid>https://xymak.github.io/blog/posts/nginx-core-dump-gdb/</guid>
+      <description>今天学习极客时间《Nginx核心知识100讲》，其中介绍了gdb怎么分析nginx的core dump文件。我在这里记录下来。
+首先在nginx.conf中加入core dump文件（核心转储文件）的配置，保证nginx对目录有写权限
+worker_rlimit_core 90m; working_directory /tmp/nginxcore/; 然后给nginx master发个SIGHUP信号。
+kill -1 ${PID} 给其中有一个worker发送SIGSEGV信号，使nginx生成core dump文件.
+kill -s SIGSEGV ${PID} 然后通过gdb分析现场。
+gdb nginx core GNU gdb (GDB) Red Hat Enterprise Linux 7.6.1-119.el7 Copyright (C) 2013 Free Software Foundation, Inc. License GPLv3+: GNU GPL version 3 or later &amp;lt;http://gnu.org/licenses/gpl.html&amp;gt; This is free software: you are free to change and redistribute it. There is NO WARRANTY, to the extent permitted by law. Type &amp;quot;show copying&amp;quot; and &amp;quot;show warranty&amp;quot; for details.</description>
+    </item>
     
     <item>
       <title>今年晋升答辩的时候遇到的问题：etcd怎么添加新节点？</title>
