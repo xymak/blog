@@ -34,7 +34,7 @@
 <meta property="og:description" content="" />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://xymak.github.io/blog/posts/" />
-<meta property="og:updated_time" content="2020-05-25T00:44:54+08:00" />
+<meta property="og:updated_time" content="2020-05-25T20:44:54+08:00" />
 <meta itemprop="name" content="Posts">
 <meta itemprop="description" content=""><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Posts"/>
@@ -91,6 +91,25 @@
   <article class="pa3 pa4-ns nested-copy-line-height nested-img">
     <section class="cf ph3 ph5-l pv3 pv4-l f4 tc-l center measure-wide lh-copy mid-gray"></section>
     <section class="flex-ns flex-wrap justify-around mt5">
+      
+        <div class="relative w-100 w-30-l mb4 bg-white"><div class="relative w-100 mb4 bg-white nested-copy-line-height">
+  <div class="bg-white mb3 pa4 gray overflow-hidden">
+    <span class="f6 db">Posts</span>
+    <h1 class="f3 near-black">
+      <a href="https://xymak.github.io/blog/posts/golang-single-flight/" class="link black dim">
+        《Go 语言设计与实现》读书笔记：SingleFlight
+      </a>
+    </h1>
+    <div class="nested-links f5 lh-copy nested-copy-line-height">
+      今天读《Go 语言设计与实现》看到了一个感觉比较有用的golang同步原语，它能在一个服务中抑制多次重复的请求。
+&ldquo;一个常用的场景是 - 我们使用redis对数据库中的数据进行缓存，发生缓存击穿，大量流量都会达到数据上进而影响服务的延时&rdquo;，这句话是作者的原话。从这句话我可以延伸到，还可以用来做合并请求，例如cdn上的合并请求。 之前我还因为缓存击穿扛过一个事故，就是mysql请求一直超时，redis缓存一直打不上，造成了恶性循环，所以我觉得这个同步原语非常有用。
+它的结构体 x/sync/singleflight.Group 由一个映射表和一个互斥锁组成：
+type Group struct { mu sync.Mutex m map[string]*call } type call struct { wg sync.WaitGroup val interface{} err error dups int chans []chan&lt;- Result } 它对外提供了两个用于抑制请求的方法：
+ x/sync/singleflight.Group.Do — 同步等待的方法 Do； x/sync/singleflight.Group.DoChan — 返回 Channel 异步等待的方法；  func (g *Group) Do(key string, fn func() (interface{}, error)) (v interface{}, err error, shared bool) { g.mu.Lock() if g.m == nil { g.m = make(map[string]*call) } if c, ok := g.
+    </div>
+  </div>
+</div>
+</div>
       
         <div class="relative w-100 w-30-l mb4 bg-white"><div class="relative w-100 mb4 bg-white nested-copy-line-height">
   <div class="bg-white mb3 pa4 gray overflow-hidden">

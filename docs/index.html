@@ -34,7 +34,7 @@
 <meta property="og:description" content="" />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://xymak.github.io/blog/" />
-<meta property="og:updated_time" content="2020-05-25T00:44:54+08:00" />
+<meta property="og:updated_time" content="2020-05-25T20:44:54+08:00" />
 <meta itemprop="name" content="mak&#39;s blog">
 <meta itemprop="description" content=""><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="mak&#39;s blog"/>
@@ -122,6 +122,34 @@
       
       <div class="blah w-100">
         <h1 class="f3 fw1 athelas mt0 lh-title">
+          <a href="https://xymak.github.io/blog/posts/golang-single-flight/" class="color-inherit dim link">
+            《Go 语言设计与实现》读书笔记：SingleFlight
+            </a>
+        </h1>
+        <div class="f6 f5-l lh-copy nested-copy-line-height nested-links">
+          今天读《Go 语言设计与实现》看到了一个感觉比较有用的golang同步原语，它能在一个服务中抑制多次重复的请求。
+&ldquo;一个常用的场景是 - 我们使用redis对数据库中的数据进行缓存，发生缓存击穿，大量流量都会达到数据上进而影响服务的延时&rdquo;，这句话是作者的原话。从这句话我可以延伸到，还可以用来做合并请求，例如cdn上的合并请求。 之前我还因为缓存击穿扛过一个事故，就是mysql请求一直超时，redis缓存一直打不上，造成了恶性循环，所以我觉得这个同步原语非常有用。
+它的结构体 x/sync/singleflight.Group 由一个映射表和一个互斥锁组成：
+type Group struct { mu sync.Mutex m map[string]*call } type call struct { wg sync.WaitGroup val interface{} err error dups int chans []chan&lt;- Result } 它对外提供了两个用于抑制请求的方法：
+ x/sync/singleflight.Group.Do — 同步等待的方法 Do； x/sync/singleflight.Group.DoChan — 返回 Channel 异步等待的方法；  func (g *Group) Do(key string, fn func() (interface{}, error)) (v interface{}, err error, shared bool) { g.mu.Lock() if g.m == nil { g.m = make(map[string]*call) } if c, ok := g.
+        </div>
+          <a href="https://xymak.github.io/blog/posts/golang-single-flight/" class="ba b--moon-gray bg-light-gray br2 color-inherit dib f7 hover-bg-moon-gray link mt2 ph2 pv1">read more</a>
+        
+      </div>
+    </div>
+  </div>
+</article>
+
+          </div>
+        
+          <div class="relative w-100 mb4">
+            
+<article class="bb b--black-10">
+  <div class="db pv4 ph3 ph0-l no-underline dark-gray">
+    <div class="flex flex-column flex-row-ns">
+      
+      <div class="blah w-100">
+        <h1 class="f3 fw1 athelas mt0 lh-title">
           <a href="https://xymak.github.io/blog/posts/golang-mutex/" class="color-inherit dim link">
             《Go 语言设计与实现》读书笔记：互斥锁
             </a>
@@ -170,36 +198,25 @@ gdb nginx core GNU gdb (GDB) Red Hat Enterprise Linux 7.6.1-119.el7 Copyright (C
 
           </div>
         
-          <div class="relative w-100 mb4">
-            
-<article class="bb b--black-10">
-  <div class="db pv4 ph3 ph0-l no-underline dark-gray">
-    <div class="flex flex-column flex-row-ns">
-      
-      <div class="blah w-100">
-        <h1 class="f3 fw1 athelas mt0 lh-title">
-          <a href="https://xymak.github.io/blog/posts/etcd/" class="color-inherit dim link">
-            今年晋升答辩的时候遇到的问题：etcd怎么添加新节点？
-            </a>
-        </h1>
-        <div class="f6 f5-l lh-copy nested-copy-line-height nested-links">
-          我自己搭的etcd集群的时候，随便在网上找了个demo就搞定了，没关注这方面的问题。被评为问到就蒙了。今天我遇到的问题都复盘一遍。
-1.etcd怎么添加一个节点？ 我之前没搭建过zookeeper、consul之类的集群，所有没关注过。 被问到这个问题，我当时回答是改配置文件，其实是不行的。因为，因为重新启动启动各个节点的时候，会有一致性问题: 需要重启，如果让数据版本比较旧的节点成为了leader，处理了写入请求后，当其他节点重新加入后，这个节点成为最新版本的节点，数据覆盖了之前的版本.
-这个时候要通过etcdctl动态添加。加入本身有3个节点：
-etcd --name myetcd1 --listen-client-urls http://0.0.0.0:23791 --advertise-client-urls http://0.0.0.0:23791 --listen-peer-urls http://0.0.0.0:23801 --initial-advertise-peer-urls http://0.0.0.0:23801 --initial-cluster-token etcd-cluster-test --initial-cluster-state new --initial-cluster myetcd1=http://0.0.0.0:23801,myetcd2=http://0.0.0.0:23802,myetcd3=http://0.0.0.0:23803 etcd --name myetcd2 --listen-client-urls http://0.0.0.0:23792 --advertise-client-urls http://0.0.0.0:23792 --listen-peer-urls http://0.0.0.0:23802 --initial-advertise-peer-urls http://0.0.0.0:23802 --initial-cluster-token etcd-cluster-test --initial-cluster-state new --initial-cluster myetcd1=http://0.0.0.0:23801,myetcd2=http://0.0.0.0:23802,myetcd3=http://0.0.0.0:23803 etcd --name myetcd3 --listen-client-urls http://0.0.0.0:23793 --advertise-client-urls http://0.0.0.0:23793 --listen-peer-urls http://0.0.0.0:23803 --initial-advertise-peer-urls http://0.0.0.0:23803 --initial-cluster-token etcd-cluster-test --initial-cluster-state new --initial-cluster myetcd1=http://0.0.0.0:23801,myetcd2=http://0.0.0.0:23802,myetcd3=http://0.0.0.0:23803 查看member列表：
-etcdctl --endpoints=http://127.0.0.1:23791 member list 47170e1b92eadb07: name=myetcd1 peerURLs=http://0.0.0.0:23801 clientURLs=http://0.0.0.0:23791 isLeader=true d150980031282a6b: name=myetcd2 peerURLs=http://0.0.0.0:23802 clientURLs=http://0.
-        </div>
-          <a href="https://xymak.github.io/blog/posts/etcd/" class="ba b--moon-gray bg-light-gray br2 color-inherit dib f7 hover-bg-moon-gray link mt2 ph2 pv1">read more</a>
-        
-      </div>
-    </div>
-  </div>
-</article>
-
-          </div>
-        
       </section>
 
+      
+      <section class="w-100">
+        <h1 class="f3">More</h1>
+        
+        
+          <h2 class="f5 fw4 mb4 dib mr3">
+            <a href="https://xymak.github.io/blog/posts/etcd/" class="link black dim">
+              今年晋升答辩的时候遇到的问题：etcd怎么添加新节点？
+            </a>
+          </h2>
+        
+
+        
+        
+          <a href="https://xymak.github.io/blog/posts/" class="link db f6 pa2 br3 bg-mid-gray white dim w4 tc">All Posts</a>
+        
+        </section>
       
 
       </div>
