@@ -6,10 +6,22 @@
     <description>Recent content in Posts on mak&#39;s blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sat, 02 May 2020 17:50:57 +0800</lastBuildDate>
+    <lastBuildDate>Mon, 25 May 2020 00:44:54 +0800</lastBuildDate>
     
 	<atom:link href="https://xymak.github.io/blog/posts/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>《Go 语言设计与实现》：读书笔记</title>
+      <link>https://xymak.github.io/blog/posts/golang-mutex/</link>
+      <pubDate>Mon, 25 May 2020 00:44:54 +0800</pubDate>
+      
+      <guid>https://xymak.github.io/blog/posts/golang-mutex/</guid>
+      <description>最近在读《Go 语言设计与实现》的时候，里面提到golang里的互斥锁分正常模式和饥饿模式，饥饿模式是golang 1.9版本引入的优化。饥饿这个次有点抽象，我调研了一下为什么做了这方面的优化。 下面引入一下YiXu Zhang 写的文章
+文章里的例子：
+func main() { done := make(chan bool, 1) var mu sync.Mutex // goroutine 1  go func() { for { select { case &amp;lt;-done: return default: mu.Lock() time.Sleep(100 * time.Microsecond) mu.Unlock() } } }() // goroutine 2  for i := 0; i &amp;lt; 10; i++ { time.Sleep(100 * time.Microsecond) mu.Lock() mu.Unlock() } done &amp;lt;- true } 如果用golang 1.8运行上面这个例子:
+Lock acquired per goroutine: g1: 7200216 g2: 10 互斥锁被第二个协程捕获十次，而第一个协程则捕获了700万次。首先协程1获得锁后睡眠100ms，当协程2尝试获取锁时，它将被添加到锁的队列（FIFO）中，并且进入等待状态。 然后，协程1释放了锁。协程2也被唤醒了，被标记为可运行，然后等待调度器在线程上运行。 但是这个时候协程1又去获得锁。 到协程2去获得锁的时候，发现锁已经被其他线程持有了。 这个问题可以总结为：刚被唤起的协程与在运行的协程竞争时，大概率会获取不到锁。 本身golang 1.</description>
+    </item>
     
     <item>
       <title>利用gdb分析nginx core dump文件</title>

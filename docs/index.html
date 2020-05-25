@@ -34,7 +34,7 @@
 <meta property="og:description" content="" />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://xymak.github.io/blog/" />
-<meta property="og:updated_time" content="2020-05-02T17:50:57+08:00" />
+<meta property="og:updated_time" content="2020-05-25T00:44:54+08:00" />
 <meta itemprop="name" content="mak&#39;s blog">
 <meta itemprop="description" content=""><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="mak&#39;s blog"/>
@@ -113,6 +113,33 @@
 
       <section class="w-100 mw8">
         
+        
+          <div class="relative w-100 mb4">
+            
+<article class="bb b--black-10">
+  <div class="db pv4 ph3 ph0-l no-underline dark-gray">
+    <div class="flex flex-column flex-row-ns">
+      
+      <div class="blah w-100">
+        <h1 class="f3 fw1 athelas mt0 lh-title">
+          <a href="https://xymak.github.io/blog/posts/golang-mutex/" class="color-inherit dim link">
+            《Go 语言设计与实现》：读书笔记
+            </a>
+        </h1>
+        <div class="f6 f5-l lh-copy nested-copy-line-height nested-links">
+          最近在读《Go 语言设计与实现》的时候，里面提到golang里的互斥锁分正常模式和饥饿模式，饥饿模式是golang 1.9版本引入的优化。饥饿这个次有点抽象，我调研了一下为什么做了这方面的优化。 下面引入一下YiXu Zhang 写的文章
+文章里的例子：
+func main() { done := make(chan bool, 1) var mu sync.Mutex // goroutine 1  go func() { for { select { case &lt;-done: return default: mu.Lock() time.Sleep(100 * time.Microsecond) mu.Unlock() } } }() // goroutine 2  for i := 0; i &lt; 10; i++ { time.Sleep(100 * time.Microsecond) mu.Lock() mu.Unlock() } done &lt;- true } 如果用golang 1.8运行上面这个例子:
+Lock acquired per goroutine: g1: 7200216 g2: 10 互斥锁被第二个协程捕获十次，而第一个协程则捕获了700万次。首先协程1获得锁后睡眠100ms，当协程2尝试获取锁时，它将被添加到锁的队列（FIFO）中，并且进入等待状态。 然后，协程1释放了锁。协程2也被唤醒了，被标记为可运行，然后等待调度器在线程上运行。 但是这个时候协程1又去获得锁。 到协程2去获得锁的时候，发现锁已经被其他线程持有了。 这个问题可以总结为：刚被唤起的协程与在运行的协程竞争时，大概率会获取不到锁。 本身golang 1.
+        </div>
+          <a href="https://xymak.github.io/blog/posts/golang-mutex/" class="ba b--moon-gray bg-light-gray br2 color-inherit dib f7 hover-bg-moon-gray link mt2 ph2 pv1">read more</a>
+        
+      </div>
+    </div>
+  </div>
+</article>
+
+          </div>
         
           <div class="relative w-100 mb4">
             
