@@ -3,7 +3,7 @@ title: "《Go 语言设计与实现》读书笔记：互斥锁"
 date: 2020-05-25T00:44:54+08:00
 ---
 
-最近在读《Go 语言设计与实现》的时候，里面提到golang里的互斥锁分正常模式和饥饿模式，饥饿模式是golang 1.9版本引入的优化。饥饿这个次有点抽象，我调研了一下为什么做了这方面的优化。
+最近在读[《Go 语言设计与实现》](https://draveness.me/golang/docs/part3-runtime/ch06-concurrency/golang-sync-primitives/#mutex)的时候，里面提到golang里的互斥锁分正常模式和饥饿模式，饥饿模式是golang 1.9版本引入的优化。饥饿这个次有点抽象，我调研了一下为什么做了这方面的优化。
 下面引入一下[YiXu Zhang 写的文章](https://morioh.com/p/0a103ab09f46)
 
 

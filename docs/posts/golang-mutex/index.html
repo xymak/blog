@@ -141,7 +141,7 @@ Lock acquired per goroutine: g1: 7200216 g2: 10 互斥锁被第二个协程捕�
       
       
     </header>
-    <div class="nested-copy-line-height lh-copy serif f4 nested-links nested-img mid-gray pr4-l w-two-thirds-l"><p>最近在读《Go 语言设计与实现》的时候，里面提到golang里的互斥锁分正常模式和饥饿模式，饥饿模式是golang 1.9版本引入的优化。饥饿这个次有点抽象，我调研了一下为什么做了这方面的优化。
+    <div class="nested-copy-line-height lh-copy serif f4 nested-links nested-img mid-gray pr4-l w-two-thirds-l"><p>最近在读<a href="https://draveness.me/golang/docs/part3-runtime/ch06-concurrency/golang-sync-primitives/#mutex">《Go 语言设计与实现》</a>的时候，里面提到golang里的互斥锁分正常模式和饥饿模式，饥饿模式是golang 1.9版本引入的优化。饥饿这个次有点抽象，我调研了一下为什么做了这方面的优化。
 下面引入一下<a href="https://morioh.com/p/0a103ab09f46">YiXu Zhang 写的文章</a></p>
 <p>文章里的例子：</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
