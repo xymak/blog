@@ -34,7 +34,7 @@
 <meta property="og:description" content="" />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://xymak.github.io/blog/" />
-<meta property="og:updated_time" content="2020-05-25T20:44:54+08:00" />
+<meta property="og:updated_time" content="2020-05-28T16:14:54+08:00" />
 <meta itemprop="name" content="mak&#39;s blog">
 <meta itemprop="description" content=""><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="mak&#39;s blog"/>
@@ -122,6 +122,32 @@
       
       <div class="blah w-100">
         <h1 class="f3 fw1 athelas mt0 lh-title">
+          <a href="https://xymak.github.io/blog/posts/golang-channel/" class="color-inherit dim link">
+            《Go 语言设计与实现》读书笔记：Channel
+            </a>
+        </h1>
+        <div class="f6 f5-l lh-copy nested-copy-line-height nested-links">
+          今天看了《Go 语言设计与实现》Channel相关的介绍。当初有遇到相关的问题，答得不是很好，这里记录一下。 其实golang channel的设计还是很简单的，结构体如下：
+type hchan struct { qcount uint dataqsiz uint buf unsafe.Pointer elemsize uint16 closed uint32 elemtype *_type sendx uint recvx uint recvq waitq sendq waitq lock mutex }  qcount为当前元素个数 dataqsiz为总容量 buf为缓冲区数据指针 sendx为发送的标记位置 recvx为接收的标记位置 sendq为缓冲区不足的情况下阻塞的goroutine队列 recvq为不存在数据的情况下阻塞的goroutine队列  大体流程是这样的：
+ 发送情况：  如果是缓冲区空间不足或者不存在缓冲区，这里有两种情况：  有goroutine在接收队列等待，会直接将数据拷贝到接收goroutine的变量里面，sendq出队，并且唤醒接收goroutine 没有等待的goroutine，则通过gopark将当前goroutine设置为wait，并且初始化一个sudog入队recvq   如果缓存区空间充足：  有goroutine在接收队列等待，会直接将数据拷贝到接收goroutine的变量里面，sendq出队，并且唤醒接收goroutine 没有等待的goroutine，则写入buf     接收情况： 跟发送类似，镜像操作，这里不做多余陈述  另外，从底层也能发现，channel里面只有一个锁，接收和发送都要通过这一个锁做并发控制，所以用channel替代一些无锁的写法，性能是很差的。
+        </div>
+          <a href="https://xymak.github.io/blog/posts/golang-channel/" class="ba b--moon-gray bg-light-gray br2 color-inherit dib f7 hover-bg-moon-gray link mt2 ph2 pv1">read more</a>
+        
+      </div>
+    </div>
+  </div>
+</article>
+
+          </div>
+        
+          <div class="relative w-100 mb4">
+            
+<article class="bb b--black-10">
+  <div class="db pv4 ph3 ph0-l no-underline dark-gray">
+    <div class="flex flex-column flex-row-ns">
+      
+      <div class="blah w-100">
+        <h1 class="f3 fw1 athelas mt0 lh-title">
           <a href="https://xymak.github.io/blog/posts/golang-single-flight/" class="color-inherit dim link">
             《Go 语言设计与实现》读书笔记：SingleFlight
             </a>
@@ -169,41 +195,18 @@ Lock acquired per goroutine: g1: 7200216 g2: 10 互斥锁被第二个协程捕�
 
           </div>
         
-          <div class="relative w-100 mb4">
-            
-<article class="bb b--black-10">
-  <div class="db pv4 ph3 ph0-l no-underline dark-gray">
-    <div class="flex flex-column flex-row-ns">
-      
-      <div class="blah w-100">
-        <h1 class="f3 fw1 athelas mt0 lh-title">
-          <a href="https://xymak.github.io/blog/posts/nginx-core-dump-gdb/" class="color-inherit dim link">
-            利用gdb分析nginx core dump文件
-            </a>
-        </h1>
-        <div class="f6 f5-l lh-copy nested-copy-line-height nested-links">
-          今天学习极客时间《Nginx核心知识100讲》，其中介绍了gdb怎么分析nginx的core dump文件。我在这里记录下来。
-首先在nginx.conf中加入core dump文件（核心转储文件）的配置，保证nginx对目录有写权限
-worker_rlimit_core 90m; working_directory /tmp/nginxcore/; 然后给nginx master发个SIGHUP信号。
-kill -1 ${PID} 给其中有一个worker发送SIGSEGV信号，使nginx生成core dump文件.
-kill -s SIGSEGV ${PID} 然后通过gdb分析现场。
-gdb nginx core GNU gdb (GDB) Red Hat Enterprise Linux 7.6.1-119.el7 Copyright (C) 2013 Free Software Foundation, Inc. License GPLv3+: GNU GPL version 3 or later &lt;http://gnu.org/licenses/gpl.html&gt; This is free software: you are free to change and redistribute it. There is NO WARRANTY, to the extent permitted by law. Type &quot;show copying&quot; and &quot;show warranty&quot; for details.
-        </div>
-          <a href="https://xymak.github.io/blog/posts/nginx-core-dump-gdb/" class="ba b--moon-gray bg-light-gray br2 color-inherit dib f7 hover-bg-moon-gray link mt2 ph2 pv1">read more</a>
-        
-      </div>
-    </div>
-  </div>
-</article>
-
-          </div>
-        
       </section>
 
       
       <section class="w-100">
         <h1 class="f3">More</h1>
         
+        
+          <h2 class="f5 fw4 mb4 dib mr3">
+            <a href="https://xymak.github.io/blog/posts/nginx-core-dump-gdb/" class="link black dim">
+              利用gdb分析nginx core dump文件
+            </a>
+          </h2>
         
           <h2 class="f5 fw4 mb4 dib mr3">
             <a href="https://xymak.github.io/blog/posts/etcd/" class="link black dim">
