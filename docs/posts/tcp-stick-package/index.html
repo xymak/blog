@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    
+    <title>mak&#39;s blog  | tcp粘包/分包整理</title>
+    <meta name="viewport" content="width=device-width,minimum-scale=1">
+    <meta name="generator" content="Hugo 0.69.0" />
+    
+    
+      <META NAME="ROBOTS" CONTENT="NOINDEX, NOFOLLOW">
+    
+
+    
+    
+      <link href="/blog/dist/css/app.1cb140d8ba31d5b2f1114537dd04802a.css" rel="stylesheet">
+    
+
+    
+
+    
+      
+    
+
+    
+    
+    <meta property="og:title" content="tcp粘包/分包整理" />
+<meta property="og:description" content="处理tcp层的逻辑的时候就需要处理粘包问题。因为tcp是基于流的，保证有序，但是流里面消息是没有边界的，tcp会对应用消息做分包，所以会有粘包/分包问题。
+使用应用层的协议就不需要，例如http，websocket。这些应用层协议是基于tcp，本身解决粘包问题。
+ Http  http的header有&quot;Content-Length&quot;这个就设置了应用消息的长度，接收方可以根据这个长度来感知应用消息的长度。
+http在&quot;Transfer-Encoding: chunked&quot;场景下是没有Content-Length的。在头部加入 Transfer-Encoding: chunked 之后，就代表这个报文采用了分块编码。这时，报文中的实体需要改为用一系列分块来传输。每个分块包含十六进制的长度值和数据，长度值独占一行，长度不包括它结尾的 CRLF（\r\n），也不包括分块数据结尾的 CRLF。最后一个分块长度值必须为 0，对应的分块数据没有内容，表示实体结束。 例如golang以下代码：
+func main() { http.HandleFunc(&#34;/hello&#34;, ChunkServer) http.ListenAndServe(&#34;127.0.0.1:6666&#34;, nil) } func ChunkServer(w http.ResponseWriter, req *http.Request) { flusher, ok := w.(http.Flusher) if !ok { panic(&#34;expected http.ResponseWriter to be an http.Flusher&#34;) } w.Header().Set(&#34;X-Content-Type-Options&#34;, &#34;nosniff&#34;) for i := 1; i &lt;= 10; i&#43;&#43; { fmt.Fprintf(w, &#34;Chunk #%d\n&#34;, i) flusher.Flush() // Trigger &#34;chunked&#34; encoding and send a chunk... 	time.Sleep(500 * time." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://xymak.github.io/blog/posts/tcp-stick-package/" />
+<meta property="article:published_time" content="2020-06-03T08:44:54+08:00" />
+<meta property="article:modified_time" content="2020-06-03T08:44:54+08:00" />
+<meta itemprop="name" content="tcp粘包/分包整理">
+<meta itemprop="description" content="处理tcp层的逻辑的时候就需要处理粘包问题。因为tcp是基于流的，保证有序，但是流里面消息是没有边界的，tcp会对应用消息做分包，所以会有粘包/分包问题。
+使用应用层的协议就不需要，例如http，websocket。这些应用层协议是基于tcp，本身解决粘包问题。
+ Http  http的header有&quot;Content-Length&quot;这个就设置了应用消息的长度，接收方可以根据这个长度来感知应用消息的长度。
+http在&quot;Transfer-Encoding: chunked&quot;场景下是没有Content-Length的。在头部加入 Transfer-Encoding: chunked 之后，就代表这个报文采用了分块编码。这时，报文中的实体需要改为用一系列分块来传输。每个分块包含十六进制的长度值和数据，长度值独占一行，长度不包括它结尾的 CRLF（\r\n），也不包括分块数据结尾的 CRLF。最后一个分块长度值必须为 0，对应的分块数据没有内容，表示实体结束。 例如golang以下代码：
+func main() { http.HandleFunc(&#34;/hello&#34;, ChunkServer) http.ListenAndServe(&#34;127.0.0.1:6666&#34;, nil) } func ChunkServer(w http.ResponseWriter, req *http.Request) { flusher, ok := w.(http.Flusher) if !ok { panic(&#34;expected http.ResponseWriter to be an http.Flusher&#34;) } w.Header().Set(&#34;X-Content-Type-Options&#34;, &#34;nosniff&#34;) for i := 1; i &lt;= 10; i&#43;&#43; { fmt.Fprintf(w, &#34;Chunk #%d\n&#34;, i) flusher.Flush() // Trigger &#34;chunked&#34; encoding and send a chunk... 	time.Sleep(500 * time.">
+<meta itemprop="datePublished" content="2020-06-03T08:44:54&#43;08:00" />
+<meta itemprop="dateModified" content="2020-06-03T08:44:54&#43;08:00" />
+<meta itemprop="wordCount" content="492">
+
+
+
+<meta itemprop="keywords" content="" /><meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="tcp粘包/分包整理"/>
+<meta name="twitter:description" content="处理tcp层的逻辑的时候就需要处理粘包问题。因为tcp是基于流的，保证有序，但是流里面消息是没有边界的，tcp会对应用消息做分包，所以会有粘包/分包问题。
+使用应用层的协议就不需要，例如http，websocket。这些应用层协议是基于tcp，本身解决粘包问题。
+ Http  http的header有&quot;Content-Length&quot;这个就设置了应用消息的长度，接收方可以根据这个长度来感知应用消息的长度。
+http在&quot;Transfer-Encoding: chunked&quot;场景下是没有Content-Length的。在头部加入 Transfer-Encoding: chunked 之后，就代表这个报文采用了分块编码。这时，报文中的实体需要改为用一系列分块来传输。每个分块包含十六进制的长度值和数据，长度值独占一行，长度不包括它结尾的 CRLF（\r\n），也不包括分块数据结尾的 CRLF。最后一个分块长度值必须为 0，对应的分块数据没有内容，表示实体结束。 例如golang以下代码：
+func main() { http.HandleFunc(&#34;/hello&#34;, ChunkServer) http.ListenAndServe(&#34;127.0.0.1:6666&#34;, nil) } func ChunkServer(w http.ResponseWriter, req *http.Request) { flusher, ok := w.(http.Flusher) if !ok { panic(&#34;expected http.ResponseWriter to be an http.Flusher&#34;) } w.Header().Set(&#34;X-Content-Type-Options&#34;, &#34;nosniff&#34;) for i := 1; i &lt;= 10; i&#43;&#43; { fmt.Fprintf(w, &#34;Chunk #%d\n&#34;, i) flusher.Flush() // Trigger &#34;chunked&#34; encoding and send a chunk... 	time.Sleep(500 * time."/>
+
+  </head>
+
+  <body class="ma0 avenir bg-near-white">
+
+    
+   
+  
+
+  <header>
+    <div class="bg-black">
+      <nav class="pv3 ph3 ph4-ns" role="navigation">
+  <div class="flex-l justify-between items-center center">
+    <a href="https://xymak.github.io/blog" class="f3 fw2 hover-white no-underline white-90 dib">
+      mak&#39;s blog
+    </a>
+    <div class="flex-l items-center">
+      
+
+      
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    </div>
+  </div>
+</nav>
+
+    </div>
+  </header>
+
+
+
+    <main class="pb7" role="main">
+      
+  
+  <article class="flex-l flex-wrap justify-between mw8 center ph3">
+    <header class="mt4 w-100">
+      <aside class="instapaper_ignoref b helvetica tracked">
+          
+        POSTS
+      </aside>
+      
+
+
+
+
+  <div id="sharing" class="mt3">
+
+    
+    <a href="https://www.facebook.com/sharer.php?u=https://xymak.github.io/blog/posts/tcp-stick-package/" class="facebook no-underline" aria-label="share on Facebook">
+      <svg height="32px"  style="enable-background:new 0 0 67 67;" version="1.1" viewBox="0 0 67 67" width="32px" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><path d="M28.765,50.32h6.744V33.998h4.499l0.596-5.624h-5.095  l0.007-2.816c0-1.466,0.14-2.253,2.244-2.253h2.812V17.68h-4.5c-5.405,0-7.307,2.729-7.307,7.317v3.377h-3.369v5.625h3.369V50.32z   M33,64C16.432,64,3,50.569,3,34S16.432,4,33,4s30,13.431,30,30S49.568,64,33,64z" style="fill-rule:evenodd;clip-rule:evenodd;"/></svg>
+
+    </a>
+
+    
+    
+    <a href="https://twitter.com/share?url=https://xymak.github.io/blog/posts/tcp-stick-package/&amp;text=tcp%e7%b2%98%e5%8c%85/%e5%88%86%e5%8c%85%e6%95%b4%e7%90%86" class="twitter no-underline" aria-label="share on Twitter">
+      <svg height="32px"  style="enable-background:new 0 0 67 67;" version="1.1" viewBox="0 0 67 67" width="32px" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><path d="M37.167,22.283c-2.619,0.953-4.274,3.411-4.086,6.101  l0.063,1.038l-1.048-0.127c-3.813-0.487-7.145-2.139-9.974-4.915l-1.383-1.377l-0.356,1.017c-0.754,2.267-0.272,4.661,1.299,6.271  c0.838,0.89,0.649,1.017-0.796,0.487c-0.503-0.169-0.943-0.296-0.985-0.233c-0.146,0.149,0.356,2.076,0.754,2.839  c0.545,1.06,1.655,2.097,2.871,2.712l1.027,0.487l-1.215,0.021c-1.173,0-1.215,0.021-1.089,0.467  c0.419,1.377,2.074,2.839,3.918,3.475l1.299,0.444l-1.131,0.678c-1.676,0.976-3.646,1.526-5.616,1.568  C19.775,43.256,19,43.341,19,43.405c0,0.211,2.557,1.397,4.044,1.864c4.463,1.377,9.765,0.783,13.746-1.568  c2.829-1.673,5.657-5,6.978-8.221c0.713-1.716,1.425-4.851,1.425-6.354c0-0.975,0.063-1.102,1.236-2.267  c0.692-0.678,1.341-1.419,1.467-1.631c0.21-0.403,0.188-0.403-0.88-0.043c-1.781,0.636-2.033,0.551-1.152-0.402  c0.649-0.678,1.425-1.907,1.425-2.267c0-0.063-0.314,0.042-0.671,0.233c-0.377,0.212-1.215,0.53-1.844,0.72l-1.131,0.361l-1.027-0.7  c-0.566-0.381-1.361-0.805-1.781-0.932C39.766,21.902,38.131,21.944,37.167,22.283z M33,64C16.432,64,3,50.569,3,34S16.432,4,33,4  s30,13.431,30,30S49.568,64,33,64z" style="fill-rule:evenodd;clip-rule:evenodd;fill:;"/></svg>
+
+    </a>
+
+    
+    <a href="https://www.linkedin.com/shareArticle?mini=true&amp;url=https://xymak.github.io/blog/posts/tcp-stick-package/&amp;title=tcp%e7%b2%98%e5%8c%85/%e5%88%86%e5%8c%85%e6%95%b4%e7%90%86" class="linkedin no-underline" aria-label="share on LinkedIn">
+      <svg  height="32px"  style="enable-background:new 0 0 65 65;" version="1.1" viewBox="0 0 65 65" width="32px" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <path d="M50.837,48.137V36.425c0-6.275-3.35-9.195-7.816-9.195  c-3.604,0-5.219,1.983-6.119,3.374V27.71h-6.79c0.09,1.917,0,20.427,0,20.427h6.79V36.729c0-0.609,0.044-1.219,0.224-1.655  c0.49-1.22,1.607-2.483,3.482-2.483c2.458,0,3.44,1.873,3.44,4.618v10.929H50.837z M22.959,24.922c2.367,0,3.842-1.57,3.842-3.531  c-0.044-2.003-1.475-3.528-3.797-3.528s-3.841,1.524-3.841,3.528c0,1.961,1.474,3.531,3.753,3.531H22.959z M34,64  C17.432,64,4,50.568,4,34C4,17.431,17.432,4,34,4s30,13.431,30,30C64,50.568,50.568,64,34,64z M26.354,48.137V27.71h-6.789v20.427  H26.354z" style="fill-rule:evenodd;clip-rule:evenodd;fill:;"/>
+</svg>
+
+    </a>
+  </div>
+
+      <h1 class="f1 athelas mt3 mb1">tcp粘包/分包整理</h1>
+      
+      
+      <time class="f6 mv4 dib tracked" datetime="2020-06-03T08:44:54&#43;08:00">June 3, 2020</time>
+
+      
+      
+    </header>
+    <div class="nested-copy-line-height lh-copy serif f4 nested-links nested-img mid-gray pr4-l w-two-thirds-l"><p>处理tcp层的逻辑的时候就需要处理粘包问题。因为tcp是基于流的，保证有序，但是流里面消息是没有边界的，tcp会对应用消息做分包，所以会有粘包/分包问题。</p>
+<p>使用应用层的协议就不需要，例如http，websocket。这些应用层协议是基于tcp，本身解决粘包问题。</p>
+<ul>
+<li>Http</li>
+</ul>
+<p>http的header有&quot;Content-Length&quot;这个就设置了应用消息的长度，接收方可以根据这个长度来感知应用消息的长度。</p>
+<p>http在&quot;Transfer-Encoding: chunked&quot;场景下是没有Content-Length的。在头部加入 Transfer-Encoding: chunked 之后，就代表这个报文采用了分块编码。这时，报文中的实体需要改为用一系列分块来传输。每个分块包含十六进制的长度值和数据，长度值独占一行，长度不包括它结尾的 CRLF（\r\n），也不包括分块数据结尾的 CRLF。最后一个分块长度值必须为 0，对应的分块数据没有内容，表示实体结束。
+例如golang以下代码：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+	<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">HandleFunc</span>(<span style="color:#e6db74">&#34;/hello&#34;</span>, <span style="color:#a6e22e">ChunkServer</span>)
+	<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ListenAndServe</span>(<span style="color:#e6db74">&#34;127.0.0.1:6666&#34;</span>, <span style="color:#66d9ef">nil</span>)
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">ChunkServer</span>(<span style="color:#a6e22e">w</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ResponseWriter</span>, <span style="color:#a6e22e">req</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Request</span>) {
+	<span style="color:#a6e22e">flusher</span>, <span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">w</span>.(<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Flusher</span>)
+	<span style="color:#66d9ef">if</span> !<span style="color:#a6e22e">ok</span> {
+		panic(<span style="color:#e6db74">&#34;expected http.ResponseWriter to be an http.Flusher&#34;</span>)
+	}
+	<span style="color:#a6e22e">w</span>.<span style="color:#a6e22e">Header</span>().<span style="color:#a6e22e">Set</span>(<span style="color:#e6db74">&#34;X-Content-Type-Options&#34;</span>, <span style="color:#e6db74">&#34;nosniff&#34;</span>)
+	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">1</span>; <span style="color:#a6e22e">i</span> <span style="color:#f92672">&lt;=</span> <span style="color:#ae81ff">10</span>; <span style="color:#a6e22e">i</span><span style="color:#f92672">++</span> {
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Fprintf</span>(<span style="color:#a6e22e">w</span>, <span style="color:#e6db74">&#34;Chunk #%d\n&#34;</span>, <span style="color:#a6e22e">i</span>)
+		<span style="color:#a6e22e">flusher</span>.<span style="color:#a6e22e">Flush</span>() <span style="color:#75715e">// Trigger &#34;chunked&#34; encoding and send a chunk...
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Sleep</span>(<span style="color:#ae81ff">500</span> <span style="color:#f92672">*</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Millisecond</span>)
+	}
+}
+</code></pre></div><p>上面这段代码会隐性地触发golang的http chunk。
+通过Wireshark抓包看到:
+<img src="WX20200603-155458.png" alt="1">
+每次flusher.Flush都会形成一个分块，每个分块长度为9。最后一个分块为0，为消息主体的结束标识。</p>
+<ul>
+<li>Websocket</li>
+</ul>
+<p>WebSocket 会把应用的消息分割成一个或多个帧，接收方接到到多个帧会进行组装，等到接收到完整消息之后再通知接收端。
+WebSocket 数据帧格式如下：</p>
+<pre><code> 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+ +-+-+-+-+-------+-+-------------+-------------------------------+
+ |F|R|R|R| opcode|M| Payload len |    Extended payload length    |
+ |I|S|S|S|  (4)  |A|     (7)     |             (16/64)           |
+ |N|V|V|V|       |S|             |   (if payload len==126/127)   |
+ | |1|2|3|       |K|             |                               |
+ +-+-+-+-+-------+-+-------------+ - - - - - - - - - - - - - - - +
+ |     Extended payload length continued, if payload len == 127  |
+ + - - - - - - - - - - - - - - - +-------------------------------+
+ |                               |Masking-key, if MASK set to 1  |
+ +-------------------------------+-------------------------------+
+ | Masking-key (continued)       |          Payload Data         |
+ +-------------------------------- - - - - - - - - - - - - - - - +
+ :                     Payload Data continued ...                :
+ + - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - +
+ |                     Payload Data continued ...                |
+ +---------------------------------------------------------------+
+</code></pre><p>字段解析如下：
+1 FIN:0表示不是最后一个分片，1表示是最后一个分片。
+2 RSV1, RSV2, RSV3：
+3 一般情况下全为 0。当客户端、服务端协商采用 WebSocket 扩展时，这三个标志位可以非0，且值的含义由扩展进行定义。如果出现非零的值，且并没有采用 WebSocket 扩展，连接出错。
+4 Opcode：
+%x0：表示一个延续帧。当 Opcode 为 0 时，表示本次数据传输采用了数据分片，当前收到的数据帧为其中一个数据分片；
+%x1：表示这是一个文本帧（text frame）；
+%x2：表示这是一个二进制帧（binary frame）；
+%x3-7：保留的操作代码，用于后续定义的非控制帧；
+%x8：表示连接断开；
+%x9：表示这是一个心跳请求（ping）；
+%xA：表示这是一个心跳响应（pong）；
+%xB-F：保留的操作代码，用于后续定义的控制帧。</p>
+<p>可以通过FIN就能感知应用消息的边界。</p>
+<ul>
+<li>TCP</li>
+</ul>
+<p>golang处理tcp粘包/分包问题，网上搜到的处理方法思路大概是：在数据包中添加长度字段。看看goim（bilibili毛剑开发的）是怎么处理的：
+api/comet/grpc/protocol.go的代码</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">p</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Proto</span>) <span style="color:#a6e22e">ReadTCP</span>(<span style="color:#a6e22e">rr</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">bufio</span>.<span style="color:#a6e22e">Reader</span>) (<span style="color:#a6e22e">err</span> <span style="color:#66d9ef">error</span>) {
+	<span style="color:#66d9ef">var</span> (
+		<span style="color:#a6e22e">bodyLen</span>   <span style="color:#66d9ef">int</span>
+		<span style="color:#a6e22e">headerLen</span> <span style="color:#66d9ef">int16</span>
+		<span style="color:#a6e22e">packLen</span>   <span style="color:#66d9ef">int32</span>
+		<span style="color:#a6e22e">buf</span>       []<span style="color:#66d9ef">byte</span>
+	)
+    <span style="color:#75715e">// 从reader中把header取出来
+</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">buf</span>, <span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">rr</span>.<span style="color:#a6e22e">Pop</span>(<span style="color:#a6e22e">_rawHeaderSize</span>); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#66d9ef">return</span>
+	}
+    <span style="color:#75715e">// 从头部中读取包的长度、头部长度、版本等
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">packLen</span> = <span style="color:#a6e22e">binary</span>.<span style="color:#a6e22e">BigEndian</span>.<span style="color:#a6e22e">Int32</span>(<span style="color:#a6e22e">buf</span>[<span style="color:#a6e22e">_packOffset</span>:<span style="color:#a6e22e">_headerOffset</span>])
+	<span style="color:#a6e22e">headerLen</span> = <span style="color:#a6e22e">binary</span>.<span style="color:#a6e22e">BigEndian</span>.<span style="color:#a6e22e">Int16</span>(<span style="color:#a6e22e">buf</span>[<span style="color:#a6e22e">_headerOffset</span>:<span style="color:#a6e22e">_verOffset</span>])
+	<span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">Ver</span> = int32(<span style="color:#a6e22e">binary</span>.<span style="color:#a6e22e">BigEndian</span>.<span style="color:#a6e22e">Int16</span>(<span style="color:#a6e22e">buf</span>[<span style="color:#a6e22e">_verOffset</span>:<span style="color:#a6e22e">_opOffset</span>]))
+	<span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">Op</span> = <span style="color:#a6e22e">binary</span>.<span style="color:#a6e22e">BigEndian</span>.<span style="color:#a6e22e">Int32</span>(<span style="color:#a6e22e">buf</span>[<span style="color:#a6e22e">_opOffset</span>:<span style="color:#a6e22e">_seqOffset</span>])
+	<span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">Seq</span> = <span style="color:#a6e22e">binary</span>.<span style="color:#a6e22e">BigEndian</span>.<span style="color:#a6e22e">Int32</span>(<span style="color:#a6e22e">buf</span>[<span style="color:#a6e22e">_seqOffset</span>:])
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">packLen</span> &gt; <span style="color:#a6e22e">_maxPackSize</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">ErrProtoPackLen</span>
+	}
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">headerLen</span> <span style="color:#f92672">!=</span> <span style="color:#a6e22e">_rawHeaderSize</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">ErrProtoHeaderLen</span>
+	}
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">bodyLen</span> = int(<span style="color:#a6e22e">packLen</span> <span style="color:#f92672">-</span> int32(<span style="color:#a6e22e">headerLen</span>)); <span style="color:#a6e22e">bodyLen</span> &gt; <span style="color:#ae81ff">0</span> {
+        <span style="color:#75715e">// 从reader中读取body内容，如果reader里面没达到可以取的长度，则返回错误
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">Body</span>, <span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">rr</span>.<span style="color:#a6e22e">Pop</span>(<span style="color:#a6e22e">bodyLen</span>)
+	} <span style="color:#66d9ef">else</span> {
+		<span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">Body</span> = <span style="color:#66d9ef">nil</span>
+	}
+	<span style="color:#66d9ef">return</span>
+}
+</code></pre></div><p>下面是internel/comet/serve_tcp.go的读取片段：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">for</span> {
+		<span style="color:#f92672">...</span>
+		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">ReadTCP</span>(<span style="color:#a6e22e">rr</span>); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+			<span style="color:#66d9ef">break</span>
+		}
+		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">white</span> {
+			<span style="color:#a6e22e">whitelist</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;key: %s read proto:%v\n&#34;</span>, <span style="color:#a6e22e">ch</span>.<span style="color:#a6e22e">Key</span>, <span style="color:#a6e22e">p</span>)
+		}
+		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">Op</span> <span style="color:#f92672">==</span> <span style="color:#a6e22e">grpc</span>.<span style="color:#a6e22e">OpHeartbeat</span> {
+			<span style="color:#a6e22e">tr</span>.<span style="color:#a6e22e">Set</span>(<span style="color:#a6e22e">trd</span>, <span style="color:#a6e22e">hb</span>)
+			<span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">Op</span> = <span style="color:#a6e22e">grpc</span>.<span style="color:#a6e22e">OpHeartbeatReply</span>
+			<span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">Body</span> = <span style="color:#66d9ef">nil</span>
+			<span style="color:#75715e">// NOTE: send server heartbeat for a long time
+</span><span style="color:#75715e"></span>			<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">now</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>(); <span style="color:#a6e22e">now</span>.<span style="color:#a6e22e">Sub</span>(<span style="color:#a6e22e">lastHb</span>) &gt; <span style="color:#a6e22e">serverHeartbeat</span> {
+				<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err1</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">s</span>.<span style="color:#a6e22e">Heartbeat</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">ch</span>.<span style="color:#a6e22e">Mid</span>, <span style="color:#a6e22e">ch</span>.<span style="color:#a6e22e">Key</span>); <span style="color:#a6e22e">err1</span> <span style="color:#f92672">==</span> <span style="color:#66d9ef">nil</span> {
+					<span style="color:#a6e22e">lastHb</span> = <span style="color:#a6e22e">now</span>
+				}
+			}
+			<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">conf</span>.<span style="color:#a6e22e">Conf</span>.<span style="color:#a6e22e">Debug</span> {
+				<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Infof</span>(<span style="color:#e6db74">&#34;tcp heartbeat receive key:%s, mid:%d&#34;</span>, <span style="color:#a6e22e">ch</span>.<span style="color:#a6e22e">Key</span>, <span style="color:#a6e22e">ch</span>.<span style="color:#a6e22e">Mid</span>)
+			}
+			<span style="color:#a6e22e">step</span><span style="color:#f92672">++</span>
+		} <span style="color:#66d9ef">else</span> {
+			<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">s</span>.<span style="color:#a6e22e">Operate</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">p</span>, <span style="color:#a6e22e">ch</span>, <span style="color:#a6e22e">b</span>); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+				<span style="color:#66d9ef">break</span>
+			}
+		}
+		<span style="color:#f92672">...</span>
+	}
+</code></pre></div><ul class="pa0">
+  
+</ul>
+<div class="mt6 instapaper_ignoref">
+      
+      
+      </div>
+    </div>
+
+    <aside class="w-30-l mt6-l">
+
+
+
+
+</aside>
+
+  </article>
+
+    </main>
+    <footer class="bg-black bottom-0 w-100 pa3" role="contentinfo">
+  <div class="flex justify-between">
+  <a class="f4 fw4 hover-white no-underline white-70 dn dib-ns pv2 ph3" href="https://xymak.github.io/blog" >
+    &copy;  mak's blog 2020 
+  </a>
+    <div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+  </div>
+</footer>
+
+    
+
+  <script src="/blog/dist/js/app.3fc0f988d21662902933.js"></script>
+
+
+  </body>
+</html>

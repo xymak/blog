@@ -34,7 +34,7 @@
 <meta property="og:description" content="" />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://xymak.github.io/blog/posts/" />
-<meta property="og:updated_time" content="2020-05-28T16:14:54+08:00" />
+<meta property="og:updated_time" content="2020-06-03T08:44:54+08:00" />
 <meta itemprop="name" content="Posts">
 <meta itemprop="description" content=""><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Posts"/>
@@ -91,6 +91,25 @@
   <article class="pa3 pa4-ns nested-copy-line-height nested-img">
     <section class="cf ph3 ph5-l pv3 pv4-l f4 tc-l center measure-wide lh-copy mid-gray"></section>
     <section class="flex-ns flex-wrap justify-around mt5">
+      
+        <div class="relative w-100 w-30-l mb4 bg-white"><div class="relative w-100 mb4 bg-white nested-copy-line-height">
+  <div class="bg-white mb3 pa4 gray overflow-hidden">
+    <span class="f6 db">Posts</span>
+    <h1 class="f3 near-black">
+      <a href="https://xymak.github.io/blog/posts/tcp-stick-package/" class="link black dim">
+        tcp粘包/分包整理
+      </a>
+    </h1>
+    <div class="nested-links f5 lh-copy nested-copy-line-height">
+      处理tcp层的逻辑的时候就需要处理粘包问题。因为tcp是基于流的，保证有序，但是流里面消息是没有边界的，tcp会对应用消息做分包，所以会有粘包/分包问题。
+使用应用层的协议就不需要，例如http，websocket。这些应用层协议是基于tcp，本身解决粘包问题。
+ Http  http的header有&quot;Content-Length&quot;这个就设置了应用消息的长度，接收方可以根据这个长度来感知应用消息的长度。
+http在&quot;Transfer-Encoding: chunked&quot;场景下是没有Content-Length的。在头部加入 Transfer-Encoding: chunked 之后，就代表这个报文采用了分块编码。这时，报文中的实体需要改为用一系列分块来传输。每个分块包含十六进制的长度值和数据，长度值独占一行，长度不包括它结尾的 CRLF（\r\n），也不包括分块数据结尾的 CRLF。最后一个分块长度值必须为 0，对应的分块数据没有内容，表示实体结束。 例如golang以下代码：
+func main() { http.HandleFunc(&#34;/hello&#34;, ChunkServer) http.ListenAndServe(&#34;127.0.0.1:6666&#34;, nil) } func ChunkServer(w http.ResponseWriter, req *http.Request) { flusher, ok := w.(http.Flusher) if !ok { panic(&#34;expected http.ResponseWriter to be an http.Flusher&#34;) } w.Header().Set(&#34;X-Content-Type-Options&#34;, &#34;nosniff&#34;) for i := 1; i &lt;= 10; i++ { fmt.Fprintf(w, &#34;Chunk #%d\n&#34;, i) flusher.Flush() // Trigger &#34;chunked&#34; encoding and send a chunk... 	time.Sleep(500 * time.
+    </div>
+  </div>
+</div>
+</div>
       
         <div class="relative w-100 w-30-l mb4 bg-white"><div class="relative w-100 mb4 bg-white nested-copy-line-height">
   <div class="bg-white mb3 pa4 gray overflow-hidden">
