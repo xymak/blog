@@ -34,7 +34,7 @@
 <meta property="og:description" content="" />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://xymak.github.io/blog/" />
-<meta property="og:updated_time" content="2020-06-20T10:44:54+08:00" />
+<meta property="og:updated_time" content="2020-07-16T00:44:54+08:00" />
 <meta itemprop="name" content="mak&#39;s blog">
 <meta itemprop="description" content=""><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="mak&#39;s blog"/>
@@ -122,6 +122,33 @@
       
       <div class="blah w-100">
         <h1 class="f3 fw1 athelas mt0 lh-title">
+          <a href="https://xymak.github.io/blog/posts/consistency_hash/" class="color-inherit dim link">
+            golang实现一个比较简单一致性hash
+            </a>
+        </h1>
+        <div class="f6 f5-l lh-copy nested-copy-line-height nested-links">
+          一致性hash通常用来做数据分片，保证平衡性、单调性。直接上代码:
+type Hash func(data []byte) uint32 type Map struct { hash Hash // hash函数  replicas int // 这个是虚拟节点的数量  keys []int // hash环上的节点定位  hashMap map[int]string // hash环到真实节点的映射 } 初始化
+func New(replicas int, fn Hash) *Map { m := &amp;Map{ replicas: replicas, hash: fn, hashMap: make(map[int]string), } if m.hash == nil { m.hash = crc32.ChecksumIEEE } return m } 添加节点
+func (m *Map) Add(keys ...string) { for _, key := range keys { for i := 0; i &lt; m.
+        </div>
+          <a href="https://xymak.github.io/blog/posts/consistency_hash/" class="ba b--moon-gray bg-light-gray br2 color-inherit dib f7 hover-bg-moon-gray link mt2 ph2 pv1">read more</a>
+        
+      </div>
+    </div>
+  </div>
+</article>
+
+          </div>
+        
+          <div class="relative w-100 mb4">
+            
+<article class="bb b--black-10">
+  <div class="db pv4 ph3 ph0-l no-underline dark-gray">
+    <div class="flex flex-column flex-row-ns">
+      
+      <div class="blah w-100">
+        <h1 class="f3 fw1 athelas mt0 lh-title">
           <a href="https://xymak.github.io/blog/posts/rtmp/" class="color-inherit dim link">
             直播相关技术整理: rtmp
             </a>
@@ -177,38 +204,18 @@ func main() { http.HandleFunc(&#34;/hello&#34;, ChunkServer) http.ListenAndServe
 
           </div>
         
-          <div class="relative w-100 mb4">
-            
-<article class="bb b--black-10">
-  <div class="db pv4 ph3 ph0-l no-underline dark-gray">
-    <div class="flex flex-column flex-row-ns">
-      
-      <div class="blah w-100">
-        <h1 class="f3 fw1 athelas mt0 lh-title">
-          <a href="https://xymak.github.io/blog/posts/golang-channel/" class="color-inherit dim link">
-            《Go 语言设计与实现》读书笔记：Channel
-            </a>
-        </h1>
-        <div class="f6 f5-l lh-copy nested-copy-line-height nested-links">
-          今天看了《Go 语言设计与实现》Channel相关的介绍。当初有遇到相关的问题，答得不是很好，这里记录一下。 其实golang channel的设计还是很简单的，结构体如下：
-type hchan struct { qcount uint dataqsiz uint buf unsafe.Pointer elemsize uint16 closed uint32 elemtype *_type sendx uint recvx uint recvq waitq sendq waitq lock mutex }  qcount为当前元素个数 dataqsiz为总容量 buf为缓冲区数据指针 sendx为发送的标记位置 recvx为接收的标记位置 sendq为缓冲区不足的情况下阻塞的goroutine队列 recvq为不存在数据的情况下阻塞的goroutine队列  大体流程是这样的：
- 发送情况：  如果是缓冲区空间不足或者不存在缓冲区，这里有两种情况：  有goroutine在接收队列等待，会直接将数据拷贝到接收goroutine的变量里面，sendq出队，并且唤醒接收goroutine 没有等待的goroutine，则通过gopark将当前goroutine设置为wait，并且初始化一个sudog入队recvq   如果缓存区空间充足：  有goroutine在接收队列等待，会直接将数据拷贝到接收goroutine的变量里面，sendq出队，并且唤醒接收goroutine 没有等待的goroutine，则写入buf     接收情况： 跟发送类似，镜像操作，这里不做多余陈述  另外，从底层也能发现，channel里面只有一个锁，接收和发送都要通过这一个锁做并发控制，所以用channel替代一些无锁的写法，性能是很差的。
-        </div>
-          <a href="https://xymak.github.io/blog/posts/golang-channel/" class="ba b--moon-gray bg-light-gray br2 color-inherit dib f7 hover-bg-moon-gray link mt2 ph2 pv1">read more</a>
-        
-      </div>
-    </div>
-  </div>
-</article>
-
-          </div>
-        
       </section>
 
       
       <section class="w-100">
         <h1 class="f3">More</h1>
         
+        
+          <h2 class="f5 fw4 mb4 dib mr3">
+            <a href="https://xymak.github.io/blog/posts/golang-channel/" class="link black dim">
+              《Go 语言设计与实现》读书笔记：Channel
+            </a>
+          </h2>
         
           <h2 class="f5 fw4 mb4 dib mr3">
             <a href="https://xymak.github.io/blog/posts/golang-single-flight/" class="link black dim">
@@ -225,12 +232,6 @@ type hchan struct { qcount uint dataqsiz uint buf unsafe.Pointer elemsize uint16
           <h2 class="f5 fw4 mb4 dib mr3">
             <a href="https://xymak.github.io/blog/posts/nginx-core-dump-gdb/" class="link black dim">
               利用gdb分析nginx core dump文件
-            </a>
-          </h2>
-        
-          <h2 class="f5 fw4 mb4 dib mr3">
-            <a href="https://xymak.github.io/blog/posts/etcd/" class="link black dim">
-              今年晋升答辩的时候遇到的问题：etcd怎么添加新节点？
             </a>
           </h2>
         

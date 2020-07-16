@@ -6,10 +6,22 @@
     <description>Recent content in Posts on mak&#39;s blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sat, 20 Jun 2020 10:44:54 +0800</lastBuildDate>
+    <lastBuildDate>Thu, 16 Jul 2020 00:44:54 +0800</lastBuildDate>
     
 	<atom:link href="https://xymak.github.io/blog/posts/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>golang实现一个比较简单一致性hash</title>
+      <link>https://xymak.github.io/blog/posts/consistency_hash/</link>
+      <pubDate>Thu, 16 Jul 2020 00:44:54 +0800</pubDate>
+      
+      <guid>https://xymak.github.io/blog/posts/consistency_hash/</guid>
+      <description>一致性hash通常用来做数据分片，保证平衡性、单调性。直接上代码:
+type Hash func(data []byte) uint32 type Map struct { hash Hash // hash函数  replicas int // 这个是虚拟节点的数量  keys []int // hash环上的节点定位  hashMap map[int]string // hash环到真实节点的映射 } 初始化
+func New(replicas int, fn Hash) *Map { m := &amp;amp;Map{ replicas: replicas, hash: fn, hashMap: make(map[int]string), } if m.hash == nil { m.hash = crc32.ChecksumIEEE } return m } 添加节点
+func (m *Map) Add(keys ...string) { for _, key := range keys { for i := 0; i &amp;lt; m.</description>
+    </item>
     
     <item>
       <title>直播相关技术整理: rtmp</title>

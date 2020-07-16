@@ -34,7 +34,7 @@
 <meta property="og:description" content="" />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://xymak.github.io/blog/posts/" />
-<meta property="og:updated_time" content="2020-06-20T10:44:54+08:00" />
+<meta property="og:updated_time" content="2020-07-16T00:44:54+08:00" />
 <meta itemprop="name" content="Posts">
 <meta itemprop="description" content=""><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Posts"/>
@@ -91,6 +91,24 @@
   <article class="pa3 pa4-ns nested-copy-line-height nested-img">
     <section class="cf ph3 ph5-l pv3 pv4-l f4 tc-l center measure-wide lh-copy mid-gray"></section>
     <section class="flex-ns flex-wrap justify-around mt5">
+      
+        <div class="relative w-100 w-30-l mb4 bg-white"><div class="relative w-100 mb4 bg-white nested-copy-line-height">
+  <div class="bg-white mb3 pa4 gray overflow-hidden">
+    <span class="f6 db">Posts</span>
+    <h1 class="f3 near-black">
+      <a href="https://xymak.github.io/blog/posts/consistency_hash/" class="link black dim">
+        golang实现一个比较简单一致性hash
+      </a>
+    </h1>
+    <div class="nested-links f5 lh-copy nested-copy-line-height">
+      一致性hash通常用来做数据分片，保证平衡性、单调性。直接上代码:
+type Hash func(data []byte) uint32 type Map struct { hash Hash // hash函数  replicas int // 这个是虚拟节点的数量  keys []int // hash环上的节点定位  hashMap map[int]string // hash环到真实节点的映射 } 初始化
+func New(replicas int, fn Hash) *Map { m := &amp;Map{ replicas: replicas, hash: fn, hashMap: make(map[int]string), } if m.hash == nil { m.hash = crc32.ChecksumIEEE } return m } 添加节点
+func (m *Map) Add(keys ...string) { for _, key := range keys { for i := 0; i &lt; m.
+    </div>
+  </div>
+</div>
+</div>
       
         <div class="relative w-100 w-30-l mb4 bg-white"><div class="relative w-100 mb4 bg-white nested-copy-line-height">
   <div class="bg-white mb3 pa4 gray overflow-hidden">
