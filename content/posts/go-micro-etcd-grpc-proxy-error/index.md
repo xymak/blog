@@ -95,4 +95,4 @@ func (p *kvProxy) DeleteRange(ctx context.Context, r *pb.DeleteRangeRequest) (*p
 修改和删除的时候，会调用Invalidate使缓存失效。而且是没有自动watch一个key来刷新缓存的。
 
 现在就能定位问题了，etcd集群前面是有3个grpc proxy，一个写请求只能让一个节点缓存刷新，所以其它节点还存在老的数据。把2个grpc proxy权重改为0后，问题消失了。
-本身我只是用grpc proxy让etcd集群无状态，外部客户端不需要感知集群成员变更，3个节点让可用性更高一点，没想到grpc是有缓存的。
+本身我只是用grpc proxy让etcd集群无状态，外部客户端不需要感知集群成员变更，3个节点让可用性更高一点，没想到grpc proxy是有缓存的。
