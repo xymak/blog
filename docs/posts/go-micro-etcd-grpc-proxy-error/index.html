@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    
+    <title>mak&#39;s blog  | etcd grpc proxy缓存引发的问题</title>
+    <meta name="viewport" content="width=device-width,minimum-scale=1">
+    <meta name="generator" content="Hugo 0.69.0" />
+    
+    
+      <META NAME="ROBOTS" CONTENT="NOINDEX, NOFOLLOW">
+    
+
+    
+    
+      <link href="/blog/dist/css/app.1cb140d8ba31d5b2f1114537dd04802a.css" rel="stylesheet">
+    
+
+    
+
+    
+      
+    
+
+    
+    
+    <meta property="og:title" content="etcd grpc proxy缓存引发的问题" />
+<meta property="og:description" content="最近把go-micro升级到v2，上线后遇到一个问题：网关偶尔会把流量解析到已经下线的服务上去。
+http: proxy error: dial tcp xxx.xxx.xxx.xxx:xxx: connect: connection refused 导致大量的502产生，而且重启网关或者重启服务都不管用，于是怀疑是etcd出了问题。 我们服务发现用的是etcd集群，集群前面有3个etcd grpc proxy做反向代理，反向代理前面是一个lvs。 查看go micro etcd服务发现的相关代码：
+func (e *etcdRegistry) GetService(name string, opts ...registry.GetOption) ([]*registry.Service, error) { ctx, cancel := context.WithTimeout(context.Background(), e.options.Timeout) defer cancel() rsp, err := e.client.Get(ctx, servicePath(name)&#43;&#34;/&#34;, clientv3.WithPrefix(), clientv3.WithSerializable()) if err != nil { return nil, err } if len(rsp.Kvs) == 0 { return nil, registry.ErrNotFound } ... } 通过debug发现rsp真的返回了已经下线的版本注册信息。但是通过etcdctl &ndash;endpoints={lvs地址} get &ndash;prefix命令，数据都是最新的。这就很诡异了，同一个地址，怎么可能数据不一样？ 再仔细看发现client.Get那一行有个option我没见过。进一步查看代码：
+// WithSerializable makes &#39;Get&#39; request serializable." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://xymak.github.io/blog/posts/go-micro-etcd-grpc-proxy-error/" />
+<meta property="article:published_time" content="2020-07-22T00:44:54+08:00" />
+<meta property="article:modified_time" content="2020-07-22T00:44:54+08:00" />
+<meta itemprop="name" content="etcd grpc proxy缓存引发的问题">
+<meta itemprop="description" content="最近把go-micro升级到v2，上线后遇到一个问题：网关偶尔会把流量解析到已经下线的服务上去。
+http: proxy error: dial tcp xxx.xxx.xxx.xxx:xxx: connect: connection refused 导致大量的502产生，而且重启网关或者重启服务都不管用，于是怀疑是etcd出了问题。 我们服务发现用的是etcd集群，集群前面有3个etcd grpc proxy做反向代理，反向代理前面是一个lvs。 查看go micro etcd服务发现的相关代码：
+func (e *etcdRegistry) GetService(name string, opts ...registry.GetOption) ([]*registry.Service, error) { ctx, cancel := context.WithTimeout(context.Background(), e.options.Timeout) defer cancel() rsp, err := e.client.Get(ctx, servicePath(name)&#43;&#34;/&#34;, clientv3.WithPrefix(), clientv3.WithSerializable()) if err != nil { return nil, err } if len(rsp.Kvs) == 0 { return nil, registry.ErrNotFound } ... } 通过debug发现rsp真的返回了已经下线的版本注册信息。但是通过etcdctl &ndash;endpoints={lvs地址} get &ndash;prefix命令，数据都是最新的。这就很诡异了，同一个地址，怎么可能数据不一样？ 再仔细看发现client.Get那一行有个option我没见过。进一步查看代码：
+// WithSerializable makes &#39;Get&#39; request serializable.">
+<meta itemprop="datePublished" content="2020-07-22T00:44:54&#43;08:00" />
+<meta itemprop="dateModified" content="2020-07-22T00:44:54&#43;08:00" />
+<meta itemprop="wordCount" content="241">
+
+
+
+<meta itemprop="keywords" content="" /><meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="etcd grpc proxy缓存引发的问题"/>
+<meta name="twitter:description" content="最近把go-micro升级到v2，上线后遇到一个问题：网关偶尔会把流量解析到已经下线的服务上去。
+http: proxy error: dial tcp xxx.xxx.xxx.xxx:xxx: connect: connection refused 导致大量的502产生，而且重启网关或者重启服务都不管用，于是怀疑是etcd出了问题。 我们服务发现用的是etcd集群，集群前面有3个etcd grpc proxy做反向代理，反向代理前面是一个lvs。 查看go micro etcd服务发现的相关代码：
+func (e *etcdRegistry) GetService(name string, opts ...registry.GetOption) ([]*registry.Service, error) { ctx, cancel := context.WithTimeout(context.Background(), e.options.Timeout) defer cancel() rsp, err := e.client.Get(ctx, servicePath(name)&#43;&#34;/&#34;, clientv3.WithPrefix(), clientv3.WithSerializable()) if err != nil { return nil, err } if len(rsp.Kvs) == 0 { return nil, registry.ErrNotFound } ... } 通过debug发现rsp真的返回了已经下线的版本注册信息。但是通过etcdctl &ndash;endpoints={lvs地址} get &ndash;prefix命令，数据都是最新的。这就很诡异了，同一个地址，怎么可能数据不一样？ 再仔细看发现client.Get那一行有个option我没见过。进一步查看代码：
+// WithSerializable makes &#39;Get&#39; request serializable."/>
+
+  </head>
+
+  <body class="ma0 avenir bg-near-white">
+
+    
+   
+  
+
+  <header>
+    <div class="bg-black">
+      <nav class="pv3 ph3 ph4-ns" role="navigation">
+  <div class="flex-l justify-between items-center center">
+    <a href="https://xymak.github.io/blog" class="f3 fw2 hover-white no-underline white-90 dib">
+      mak&#39;s blog
+    </a>
+    <div class="flex-l items-center">
+      
+
+      
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    </div>
+  </div>
+</nav>
+
+    </div>
+  </header>
+
+
+
+    <main class="pb7" role="main">
+      
+  
+  <article class="flex-l flex-wrap justify-between mw8 center ph3">
+    <header class="mt4 w-100">
+      <aside class="instapaper_ignoref b helvetica tracked">
+          
+        POSTS
+      </aside>
+      
+
+
+
+
+  <div id="sharing" class="mt3">
+
+    
+    <a href="https://www.facebook.com/sharer.php?u=https://xymak.github.io/blog/posts/go-micro-etcd-grpc-proxy-error/" class="facebook no-underline" aria-label="share on Facebook">
+      <svg height="32px"  style="enable-background:new 0 0 67 67;" version="1.1" viewBox="0 0 67 67" width="32px" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><path d="M28.765,50.32h6.744V33.998h4.499l0.596-5.624h-5.095  l0.007-2.816c0-1.466,0.14-2.253,2.244-2.253h2.812V17.68h-4.5c-5.405,0-7.307,2.729-7.307,7.317v3.377h-3.369v5.625h3.369V50.32z   M33,64C16.432,64,3,50.569,3,34S16.432,4,33,4s30,13.431,30,30S49.568,64,33,64z" style="fill-rule:evenodd;clip-rule:evenodd;"/></svg>
+
+    </a>
+
+    
+    
+    <a href="https://twitter.com/share?url=https://xymak.github.io/blog/posts/go-micro-etcd-grpc-proxy-error/&amp;text=etcd%20grpc%20proxy%e7%bc%93%e5%ad%98%e5%bc%95%e5%8f%91%e7%9a%84%e9%97%ae%e9%a2%98" class="twitter no-underline" aria-label="share on Twitter">
+      <svg height="32px"  style="enable-background:new 0 0 67 67;" version="1.1" viewBox="0 0 67 67" width="32px" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><path d="M37.167,22.283c-2.619,0.953-4.274,3.411-4.086,6.101  l0.063,1.038l-1.048-0.127c-3.813-0.487-7.145-2.139-9.974-4.915l-1.383-1.377l-0.356,1.017c-0.754,2.267-0.272,4.661,1.299,6.271  c0.838,0.89,0.649,1.017-0.796,0.487c-0.503-0.169-0.943-0.296-0.985-0.233c-0.146,0.149,0.356,2.076,0.754,2.839  c0.545,1.06,1.655,2.097,2.871,2.712l1.027,0.487l-1.215,0.021c-1.173,0-1.215,0.021-1.089,0.467  c0.419,1.377,2.074,2.839,3.918,3.475l1.299,0.444l-1.131,0.678c-1.676,0.976-3.646,1.526-5.616,1.568  C19.775,43.256,19,43.341,19,43.405c0,0.211,2.557,1.397,4.044,1.864c4.463,1.377,9.765,0.783,13.746-1.568  c2.829-1.673,5.657-5,6.978-8.221c0.713-1.716,1.425-4.851,1.425-6.354c0-0.975,0.063-1.102,1.236-2.267  c0.692-0.678,1.341-1.419,1.467-1.631c0.21-0.403,0.188-0.403-0.88-0.043c-1.781,0.636-2.033,0.551-1.152-0.402  c0.649-0.678,1.425-1.907,1.425-2.267c0-0.063-0.314,0.042-0.671,0.233c-0.377,0.212-1.215,0.53-1.844,0.72l-1.131,0.361l-1.027-0.7  c-0.566-0.381-1.361-0.805-1.781-0.932C39.766,21.902,38.131,21.944,37.167,22.283z M33,64C16.432,64,3,50.569,3,34S16.432,4,33,4  s30,13.431,30,30S49.568,64,33,64z" style="fill-rule:evenodd;clip-rule:evenodd;fill:;"/></svg>
+
+    </a>
+
+    
+    <a href="https://www.linkedin.com/shareArticle?mini=true&amp;url=https://xymak.github.io/blog/posts/go-micro-etcd-grpc-proxy-error/&amp;title=etcd%20grpc%20proxy%e7%bc%93%e5%ad%98%e5%bc%95%e5%8f%91%e7%9a%84%e9%97%ae%e9%a2%98" class="linkedin no-underline" aria-label="share on LinkedIn">
+      <svg  height="32px"  style="enable-background:new 0 0 65 65;" version="1.1" viewBox="0 0 65 65" width="32px" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <path d="M50.837,48.137V36.425c0-6.275-3.35-9.195-7.816-9.195  c-3.604,0-5.219,1.983-6.119,3.374V27.71h-6.79c0.09,1.917,0,20.427,0,20.427h6.79V36.729c0-0.609,0.044-1.219,0.224-1.655  c0.49-1.22,1.607-2.483,3.482-2.483c2.458,0,3.44,1.873,3.44,4.618v10.929H50.837z M22.959,24.922c2.367,0,3.842-1.57,3.842-3.531  c-0.044-2.003-1.475-3.528-3.797-3.528s-3.841,1.524-3.841,3.528c0,1.961,1.474,3.531,3.753,3.531H22.959z M34,64  C17.432,64,4,50.568,4,34C4,17.431,17.432,4,34,4s30,13.431,30,30C64,50.568,50.568,64,34,64z M26.354,48.137V27.71h-6.789v20.427  H26.354z" style="fill-rule:evenodd;clip-rule:evenodd;fill:;"/>
+</svg>
+
+    </a>
+  </div>
+
+      <h1 class="f1 athelas mt3 mb1">etcd grpc proxy缓存引发的问题</h1>
+      
+      
+      <time class="f6 mv4 dib tracked" datetime="2020-07-22T00:44:54&#43;08:00">July 22, 2020</time>
+
+      
+      
+    </header>
+    <div class="nested-copy-line-height lh-copy serif f4 nested-links nested-img mid-gray pr4-l w-two-thirds-l"><p>最近把go-micro升级到v2，上线后遇到一个问题：网关偶尔会把流量解析到已经下线的服务上去。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">http: proxy error: dial tcp xxx.xxx.xxx.xxx:xxx: connect: connection refused
+</code></pre></div><p>导致大量的502产生，而且重启网关或者重启服务都不管用，于是怀疑是etcd出了问题。
+我们服务发现用的是etcd集群，集群前面有3个etcd grpc proxy做反向代理，反向代理前面是一个lvs。
+查看go micro etcd服务发现的相关代码：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">e</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">etcdRegistry</span>) <span style="color:#a6e22e">GetService</span>(<span style="color:#a6e22e">name</span> <span style="color:#66d9ef">string</span>, <span style="color:#a6e22e">opts</span> <span style="color:#f92672">...</span><span style="color:#a6e22e">registry</span>.<span style="color:#a6e22e">GetOption</span>) ([]<span style="color:#f92672">*</span><span style="color:#a6e22e">registry</span>.<span style="color:#a6e22e">Service</span>, <span style="color:#66d9ef">error</span>) {
+	<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">cancel</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">WithTimeout</span>(<span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Background</span>(), <span style="color:#a6e22e">e</span>.<span style="color:#a6e22e">options</span>.<span style="color:#a6e22e">Timeout</span>)
+	<span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">cancel</span>()
+
+	<span style="color:#a6e22e">rsp</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">e</span>.<span style="color:#a6e22e">client</span>.<span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">servicePath</span>(<span style="color:#a6e22e">name</span>)<span style="color:#f92672">+</span><span style="color:#e6db74">&#34;/&#34;</span>, <span style="color:#a6e22e">clientv3</span>.<span style="color:#a6e22e">WithPrefix</span>(), <span style="color:#a6e22e">clientv3</span>.<span style="color:#a6e22e">WithSerializable</span>())
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">err</span>
+	}
+
+	<span style="color:#66d9ef">if</span> len(<span style="color:#a6e22e">rsp</span>.<span style="color:#a6e22e">Kvs</span>) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">registry</span>.<span style="color:#a6e22e">ErrNotFound</span>
+	}
+
+	<span style="color:#f92672">...</span>
+}
+</code></pre></div><p>通过debug发现rsp真的返回了已经下线的版本注册信息。但是通过etcdctl &ndash;endpoints={lvs地址} get &ndash;prefix命令，数据都是最新的。这就很诡异了，同一个地址，怎么可能数据不一样？
+再仔细看发现client.Get那一行有个option我没见过。进一步查看代码：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">// WithSerializable makes &#39;Get&#39; request serializable. By default,
+</span><span style="color:#75715e">// it&#39;s linearizable. Serializable requests are better for lower latency
+</span><span style="color:#75715e">// requirement.
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">WithSerializable</span>() <span style="color:#a6e22e">OpOption</span> {
+	<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">op</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Op</span>) { <span style="color:#a6e22e">op</span>.<span style="color:#a6e22e">serializable</span> = <span style="color:#66d9ef">true</span> }
+}
+</code></pre></div><p>注释几乎没说什么，通过查看这篇知乎这篇文章<a href="https://zhuanlan.zhihu.com/p/27869566">《etcd raft如何实现Linearizable Read》</a> 了解到etcd做读请求，分Linearizable Read和Serializable Read。Linearizable Read情况下，当时的leader节点是要请求其它member节点做一致性校验（自己是不是leader之类），校验通过后，然后再返回数据的。而Serializable Read是不做校验，直接返回结果。
+所以上面代码注释说Serializable Read对低延时的场景更为友好。
+我分析了一下，难道是没有用一致性更高的Linearizable Read导致，读取了老数据吗？也不可能，有老数据，以为着etcd多个节点数据不一致或者切换了leader，也不可能一直切换leader啊。
+我把Serializable Read选项去掉了。debug发现能获取到最新数据，而且线上部分错误少了，但是又不是还是有错误。这个情况好像是某个节点缓存被清了，其它节点还是有缓存的感觉。</p>
+<p>所以现在怀疑grpc proxy有缓存，而且这个缓存跟Serializable Read和Linearizable Read有关系。直接去看grpc proxy的代码。发现真的是有cache机制，定位到<a href="https://github.com/etcd-io/etcd/blob/master/proxy/grpcproxy/kv.go">kv.go</a>这个文件：</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">p</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">kvProxy</span>) <span style="color:#a6e22e">Range</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">pb</span>.<span style="color:#a6e22e">RangeRequest</span>) (<span style="color:#f92672">*</span><span style="color:#a6e22e">pb</span>.<span style="color:#a6e22e">RangeResponse</span>, <span style="color:#66d9ef">error</span>) {
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Serializable</span> {
+		<span style="color:#a6e22e">resp</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">r</span>)
+		<span style="color:#66d9ef">switch</span> <span style="color:#a6e22e">err</span> {
+		<span style="color:#66d9ef">case</span> <span style="color:#66d9ef">nil</span>:
+			<span style="color:#a6e22e">cacheHits</span>.<span style="color:#a6e22e">Inc</span>()
+			<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">resp</span>, <span style="color:#66d9ef">nil</span>
+		<span style="color:#66d9ef">case</span> <span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">ErrCompacted</span>:
+			<span style="color:#a6e22e">cacheHits</span>.<span style="color:#a6e22e">Inc</span>()
+			<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">err</span>
+		}
+
+		<span style="color:#a6e22e">cachedMisses</span>.<span style="color:#a6e22e">Inc</span>()
+	}
+
+	<span style="color:#a6e22e">resp</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">kv</span>.<span style="color:#a6e22e">Do</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">RangeRequestToOp</span>(<span style="color:#a6e22e">r</span>))
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">err</span>
+	}
+
+	<span style="color:#75715e">// cache linearizable as serializable
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">req</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">r</span>
+	<span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">Serializable</span> = <span style="color:#66d9ef">true</span>
+	<span style="color:#a6e22e">gresp</span> <span style="color:#f92672">:=</span> (<span style="color:#f92672">*</span><span style="color:#a6e22e">pb</span>.<span style="color:#a6e22e">RangeResponse</span>)(<span style="color:#a6e22e">resp</span>.<span style="color:#a6e22e">Get</span>())
+	<span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">Add</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">req</span>, <span style="color:#a6e22e">gresp</span>)
+	<span style="color:#a6e22e">cacheKeys</span>.<span style="color:#a6e22e">Set</span>(float64(<span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">Size</span>()))
+
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">gresp</span>, <span style="color:#66d9ef">nil</span>
+}
+</code></pre></div><p>这个range函数是处理get请求用的，上面有个条件如果是Serializable Read，会先去缓存里面找，如果没找到或者是Linearizable Read就直接请求etcd，然后再把缓存打上。缓存是怎么失效的呢？</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">p</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">kvProxy</span>) <span style="color:#a6e22e">Put</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">pb</span>.<span style="color:#a6e22e">PutRequest</span>) (<span style="color:#f92672">*</span><span style="color:#a6e22e">pb</span>.<span style="color:#a6e22e">PutResponse</span>, <span style="color:#66d9ef">error</span>) {
+	<span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">Invalidate</span>(<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Key</span>, <span style="color:#66d9ef">nil</span>)
+	<span style="color:#a6e22e">cacheKeys</span>.<span style="color:#a6e22e">Set</span>(float64(<span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">Size</span>()))
+
+	<span style="color:#a6e22e">resp</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">kv</span>.<span style="color:#a6e22e">Do</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">PutRequestToOp</span>(<span style="color:#a6e22e">r</span>))
+	<span style="color:#66d9ef">return</span> (<span style="color:#f92672">*</span><span style="color:#a6e22e">pb</span>.<span style="color:#a6e22e">PutResponse</span>)(<span style="color:#a6e22e">resp</span>.<span style="color:#a6e22e">Put</span>()), <span style="color:#a6e22e">err</span>
+}
+
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">p</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">kvProxy</span>) <span style="color:#a6e22e">DeleteRange</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">pb</span>.<span style="color:#a6e22e">DeleteRangeRequest</span>) (<span style="color:#f92672">*</span><span style="color:#a6e22e">pb</span>.<span style="color:#a6e22e">DeleteRangeResponse</span>, <span style="color:#66d9ef">error</span>) {
+	<span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">Invalidate</span>(<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Key</span>, <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">RangeEnd</span>)
+	<span style="color:#a6e22e">cacheKeys</span>.<span style="color:#a6e22e">Set</span>(float64(<span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">cache</span>.<span style="color:#a6e22e">Size</span>()))
+
+	<span style="color:#a6e22e">resp</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">kv</span>.<span style="color:#a6e22e">Do</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">DelRequestToOp</span>(<span style="color:#a6e22e">r</span>))
+	<span style="color:#66d9ef">return</span> (<span style="color:#f92672">*</span><span style="color:#a6e22e">pb</span>.<span style="color:#a6e22e">DeleteRangeResponse</span>)(<span style="color:#a6e22e">resp</span>.<span style="color:#a6e22e">Del</span>()), <span style="color:#a6e22e">err</span>
+}
+</code></pre></div><p>修改和删除的时候，会调用Invalidate使缓存失效。而且是没有自动watch一个key来刷新缓存的。</p>
+<p>现在就能定位问题了，etcd集群前面是有3个grpc proxy，一个写请求只能让一个节点缓存刷新，所以其它节点还存在老的数据。把2个grpc proxy权重改为0后，问题消失了。
+本身我只是用grpc proxy让etcd集群无状态，外部客户端不需要感知集群成员变更，3个节点让可用性更高一点，没想到grpc是有缓存的。</p>
+<ul class="pa0">
+  
+</ul>
+<div class="mt6 instapaper_ignoref">
+      
+      
+      </div>
+    </div>
+
+    <aside class="w-30-l mt6-l">
+
+
+
+
+</aside>
+
+  </article>
+
+    </main>
+    <footer class="bg-black bottom-0 w-100 pa3" role="contentinfo">
+  <div class="flex justify-between">
+  <a class="f4 fw4 hover-white no-underline white-70 dn dib-ns pv2 ph3" href="https://xymak.github.io/blog" >
+    &copy;  mak's blog 2020 
+  </a>
+    <div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+  </div>
+</footer>
+
+    
+
+  <script src="/blog/dist/js/app.3fc0f988d21662902933.js"></script>
+
+
+  </body>
+</html>

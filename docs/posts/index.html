@@ -34,7 +34,7 @@
 <meta property="og:description" content="" />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://xymak.github.io/blog/posts/" />
-<meta property="og:updated_time" content="2020-07-16T00:44:54+08:00" />
+<meta property="og:updated_time" content="2020-07-22T00:44:54+08:00" />
 <meta itemprop="name" content="Posts">
 <meta itemprop="description" content=""><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Posts"/>
@@ -91,6 +91,24 @@
   <article class="pa3 pa4-ns nested-copy-line-height nested-img">
     <section class="cf ph3 ph5-l pv3 pv4-l f4 tc-l center measure-wide lh-copy mid-gray"></section>
     <section class="flex-ns flex-wrap justify-around mt5">
+      
+        <div class="relative w-100 w-30-l mb4 bg-white"><div class="relative w-100 mb4 bg-white nested-copy-line-height">
+  <div class="bg-white mb3 pa4 gray overflow-hidden">
+    <span class="f6 db">Posts</span>
+    <h1 class="f3 near-black">
+      <a href="https://xymak.github.io/blog/posts/go-micro-etcd-grpc-proxy-error/" class="link black dim">
+        etcd grpc proxy缓存引发的问题
+      </a>
+    </h1>
+    <div class="nested-links f5 lh-copy nested-copy-line-height">
+      最近把go-micro升级到v2，上线后遇到一个问题：网关偶尔会把流量解析到已经下线的服务上去。
+http: proxy error: dial tcp xxx.xxx.xxx.xxx:xxx: connect: connection refused 导致大量的502产生，而且重启网关或者重启服务都不管用，于是怀疑是etcd出了问题。 我们服务发现用的是etcd集群，集群前面有3个etcd grpc proxy做反向代理，反向代理前面是一个lvs。 查看go micro etcd服务发现的相关代码：
+func (e *etcdRegistry) GetService(name string, opts ...registry.GetOption) ([]*registry.Service, error) { ctx, cancel := context.WithTimeout(context.Background(), e.options.Timeout) defer cancel() rsp, err := e.client.Get(ctx, servicePath(name)+&#34;/&#34;, clientv3.WithPrefix(), clientv3.WithSerializable()) if err != nil { return nil, err } if len(rsp.Kvs) == 0 { return nil, registry.ErrNotFound } ... } 通过debug发现rsp真的返回了已经下线的版本注册信息。但是通过etcdctl &ndash;endpoints={lvs地址} get &ndash;prefix命令，数据都是最新的。这就很诡异了，同一个地址，怎么可能数据不一样？ 再仔细看发现client.Get那一行有个option我没见过。进一步查看代码：
+// WithSerializable makes &#39;Get&#39; request serializable.
+    </div>
+  </div>
+</div>
+</div>
       
         <div class="relative w-100 w-30-l mb4 bg-white"><div class="relative w-100 mb4 bg-white nested-copy-line-height">
   <div class="bg-white mb3 pa4 gray overflow-hidden">
